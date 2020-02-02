@@ -12,7 +12,8 @@ class GameManager:
     def __init__(self):
         """Initializes a GameManager"""
         self.players = []
-        self.options = {"size": (10, 10), "shot_per_ship": False, "spray": False, "time": 30}
+        self.options = {"size": (10, 10), "shot_per_ship": False,
+                        "spray": False, "time": 30}
         self.intro = \
             """shagged
 abscess's
