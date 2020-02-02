@@ -37,12 +37,10 @@ class Ship:
                 return True
             return False
 
-
     def is_next_to(self, y, x):
         """Checks whether a position is adjacent to the ship."""
         if len(self.fields) == 0:
             return True
-
         if len(self.fields) == 1:
             for field in self.fields.keys():
                 if y == field[0]:
@@ -51,10 +49,12 @@ class Ship:
                 elif x == field[1]:
                     if y == field[0] + 1 or y == field[0] - 1:
                         return True
-        elif self.fields.keys()[0][0] == self.fields.keys()[1][0]:
+        elif list(self.fields.keys())[0][0] == list(self.fields.keys())[1][0]:
             for field in self.fields.keys():
-                pass
-                #TODO continue working
-                #nur wenn das schiff in reihe ist...
-
+                if y == field[0] and (x == field[1] - 1 or x == field[1] + 1):
+                    return True
+        elif list(self.fields.keys())[0][1] == list(self.fields.keys())[1][1]:
+            for field in self.fields.keys():
+                if x == field[1] and (y == field[0] - 1 or y == field[0] + 1):
+                    return True
         return False

@@ -70,24 +70,6 @@ class Player:
                 button.grid(row=row + 1, column=column + 1)
                 field = list((button, "water", None))
                 self.board[row].append(field)
-                # self.board[row][column][0].grid(row=row + 1, column=column + 1)
-                # print(id(self.board[row][column]))
-            #     self.board[row][column][0]["command"] = lambda: self.shoot(row, column)
-            #     self.board[row][column][0].grid(row=row + 1, column=column + 1)
-        # for row in range(size[0]):
-        #     self.board.append([])
-        #     self.board[row].extend([(tk.Button(self.board_frame, text=Player.symbols["water"], command=lambda: self.shoot(row, i)), "water", None) for i in range(size[1])])
-        #     for column in range(size[1]):
-        #         # button = tk.Button(self.board_frame, text=Player.symbols["water"], command=lambda: self.shoot(row, column))
-        #         # tupel = tuple([button, "water", None, row, column])
-        #         # self.board[row].append(tupel)
-        #         self.board[row][column][0].grid(row=row + 1, column=column + 1)
-
-        # for i in range(len(self.board)):
-        #     print('{:>2}'.format(i + 1), end=" ")
-        #     for j in self.board[i]:
-        #         print('{:>2}'.format("X"), end="")
-        #     print("")
 
     def print_board(self, offset=0, hidden=True):
         """Displays the board.
@@ -103,5 +85,9 @@ class Player:
                     if self.board[row][column][1] == "ship":
                         self.board[row][column][0]["text"] = Player.symbols["water"]
         self.board_frame.grid(row=offset)
-        button = tk.Button(self.board_frame, text=("Schiff hinzufügen"), command=self.add_ship)
-        button.grid(columnspan=6)
+        # TODO: button has to move, print has to be universal
+        # TODO: add confirm_placement function
+        add_ship_button = tk.Button(self.board_frame, text=("Schiff hinzufügen"), command=self.add_ship)
+        add_ship_button.grid(columnspan=6)
+        confirm_placement_button = tk.Button(self.board_frame, text=("Platzierung bestätigen"), command=lambda : self.board_frame.grid_forget())
+        confirm_placement_button.grid(columnspan=6)
