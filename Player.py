@@ -53,6 +53,8 @@ class Player:
 
     def __init__(self, name, size, root):
         """Initializes a Player."""
+        self.placement_frame = tk.Frame(root)
+        self.shooting_frame = tk.Frame(root)
         self.board_frame = tk.Frame(root)
         self.active_ship = Ship()
         self.ships = []
@@ -71,7 +73,7 @@ class Player:
                 field = list((button, "water", None))
                 self.board[row].append(field)
 
-    def print_board(self, offset=0, hidden=True):
+    def print_board(self, parent):
         """Displays the board.
 
         offset describes how many rows are skipped before the board is
@@ -81,13 +83,24 @@ class Player:
         """
         for row in range(len(self.board)):
             for column in range(len(self.board[row])):
-                if hidden:
-                    if self.board[row][column][1] == "ship":
-                        self.board[row][column][0]["text"] = Player.symbols["water"]
-        self.board_frame.grid(row=offset)
+                pass
+                # if hidden:
+                #     if self.board[row][column][1] == "ship":
+                #         self.board[row][column][0]["text"] = Player.symbols["water"]
+        self.board_frame.grid()
         # TODO: button has to move, print has to be universal
         # TODO: add confirm_placement function
-        add_ship_button = tk.Button(self.board_frame, text=("Schiff hinzufügen"), command=self.add_ship)
+
+    def show_placing(self):
+        """Displays the board in placement mode."""
+        add_ship_button = tk.Button(self.placement_frame, text=("Schiff hinzufügen"), command=self.add_ship)
         add_ship_button.grid(columnspan=6)
-        confirm_placement_button = tk.Button(self.board_frame, text=("Platzierung bestätigen"), command=lambda : self.board_frame.grid_forget())
+        # self.board_frame["parent"] = self.placement_frame
+        self.placement_frame.grid()
+        self.board_frame.grid()
+        # self.print_board(self.placement_frame)
+        confirm_placement_button = tk.Button(self.board_frame, text=("Platzierung bestätigen"), command=lambda: self.board_frame.grid_forget())
         confirm_placement_button.grid(columnspan=6)
+
+    def show(self):
+        """Displays the board in shooting mode."""

@@ -15,12 +15,11 @@ class GameManager:
         self.options = {"size": (10, 10), "shot_per_ship": False,
                         "spray": False, "time": 30}
         self.intro = \
-            """shagged
-abscess's
-sagging
+            """bla
+bla
 intro
-intro2
-intro3"""
+bla 
+bla"""
         self.root = tk.Tk()
         self.root.geometry("500x500")
         self.start_frame = tk.Frame(self.root)
@@ -64,7 +63,7 @@ intro3"""
                 for player in player_name_entries:
                     self.players.append(Player(player[1].get(), (self.options["size"]), self.root))
                     self.names_frame.grid_forget()
-                self.players[0].print_board()
+                self.players[0].show_placing()
             else:
                 print("error")
 
