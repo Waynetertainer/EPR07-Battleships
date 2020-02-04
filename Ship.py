@@ -10,6 +10,14 @@ class Ship:
         """Initializes a Ship."""
         self.fields = {}
 
+    def sunk(self):
+        """Return whether all field of the shit are hit."""
+        return all(hit for hit in self.fields.values())
+
+    def hit_field(self, y, x):
+        """Marks a field as hit."""
+        self.fields.update({(y, x): True})
+
     def add_field(self, y, x):
         """Adds a field to the Ship."""
         self.fields.update({(y, x): False})
