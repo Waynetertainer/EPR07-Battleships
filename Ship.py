@@ -24,25 +24,26 @@ class Ship:
 
     def remove_field(self, y, x):
         """Removes a field from the ship."""
+        # Try to remove a field that is'n even in the ship.
         if (y, x) not in self.fields.keys():
-            print("ERROR")
+            print("FATAL ERROR")
             return False
-        for field in self.fields.keys():
-            if len(self.fields) == 1:
-                del self.fields[(y, x)]
-                return True
-            if (y + 1, x) not in self.fields.keys() and (y - 1, x) in self.fields.keys():
-                del self.fields[(y, x)]
-                return True
-            if (y - 1, x) not in self.fields.keys() and (y + 1, x) in self.fields.keys():
-                del self.fields[(y, x)]
-                return True
-            if (y, x + 1) not in self.fields.keys() and (y, x + 1) in self.fields.keys():
-                del self.fields[(y, x)]
-                return True
-            if (y, x - 1) not in self.fields.keys() and (y, x - 1) in self.fields.keys():
-                del self.fields[(y, x)]
-                return True
+        # Check every field around the given position.
+        adjacent_counter = 0
+        for i in range(-1, 2):
+            for j in range(-1, 2):
+                # The given field doesn't count against the number of adjacent
+                # fields.
+                if not j == i == 0:
+                    if (y + i, x + j) in self.fields.keys():
+                        adjacent_counter += 1
+        # If there is no or only one field around the given position, the
+        # given field is and end of the ship and can be deleted. Otherwise
+        # the field is in the middle of the ship and can not be deleted.
+        if adjacent_counter <= 1:
+            del self.fields[(y, x)]
+            return True
+        else:
             return False
 
     def is_next_to(self, y, x):

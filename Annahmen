@@ -1,0 +1,6 @@
+spieler spielen immer gegen den jeweils nächsten in der liste
+
+man kann schiffe direkt nebeneinander platzieren
+
+wenn ein spieleraufgibt, ist das spiel nicht beendet, nur er scheidet aus
+(wenn danach nur noch ein spieler übrig bleibt, ist das spiel natürlich beendet)

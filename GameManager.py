@@ -26,18 +26,28 @@ intro
 bla 
 bla"""
         self.root = tk.Tk()
-        self.root.geometry("500x500")
+        self.root.geometry("400x800+100+100")
         self.start_frame = tk.Frame(self.root)
         self.start_frame.grid()
         self.placement_frame = tk.Frame(self.root)
-        tk.Label(self.start_frame, text=self.intro, justify="left").grid(row=0, column=0)
-        tk.Button(self.start_frame, text="Start", command=self.start).grid(row=1, column=0)
+        self.shooting_frame = tk.Frame(self.root)
         self.names_frame = tk.Frame(self.root)
+        self.open_main_menu()
         self.root.mainloop()
 
-    def get_active_player(self):
+    def open_main_menu(self):
+        """Displays the main menu"""
+        print("open main menu")
+        # TODO options button
+        tk.Label(self.start_frame, text=self.intro, justify="left").grid(row=0, column=0)
+        tk.Button(self.start_frame, text="Start", command=self.start).grid(row=1, column=0)
+        self.start_frame.grid()
+        # move start button here
+        # move intro here
+
+    def get_active_player(self, offset=0):
         """Return the index of the active player."""
-        return self.active_player % len(self.players)
+        return (self.active_player + offset) % len(self.players)
 
     def start(self):
         """"""
@@ -74,7 +84,7 @@ bla"""
                     self.players.append(Player(player[1].get(), (self.options["size"]), self.root, self))
                     self.names_frame.grid_forget()
                 # Shuffles players so that it is random who begins.
-                rnd.shuffle(self. players)
+                # rnd.shuffle(self. players)
                 # Begins placement for the first player.
                 self.next_placement()
             else:
@@ -94,19 +104,69 @@ bla"""
         """Checks whether all players placed their board or who is next"""
         # Every player has placed their ships.
         if all(len(player.ships) > 0 for player in self.players):
-            self.next_shooting()
+            self.next_shooting(first_time=True)
         else:
-            self.players[self.get_active_player()].show_placing(self)
+            self.players[self.get_active_player()].show_placing()
             self.active_player += 1
 
-    def next_shooting(self):
-        """"""
-        if len(self.players) == 1:
-            print(self.players[0] + " wins")
-            # TODO implement
-        else:
-            self.players[self.get_active_player() + 1].show_shooting()
+    def next_shooting(self, defeat=False, quit=False, first_time=False):
+        """Starts the turn of the next player."""
+        print("next shooting")
+
+        def show_shooting_view():
+            """Displays the field of opponent and self."""
+            self.shooting_frame.grid_forget()
+            next_player_button.grid_forget()
+            next_player_label.grid_forget()
+            miss_label.grid_forget()
+            self.players[self.get_active_player(1)].show_shooting()
             self.players[self.get_active_player()].show_viewing()
+
+        def restart_game():
+            """Opens the main menu and resets players."""
+            print("restart game")
+            winner_confirm.grid_forget()
+            winner_label.grid_forget()
+            self.shooting_frame.grid_forget()
+            self.players = list()
+            self.open_main_menu()
+
+        self.shooting_frame.grid()
+        next_player_button = tk.Button(self.shooting_frame, text="Bereit", command=show_shooting_view)
+        winner_confirm = tk.Button(self.shooting_frame, text="Weiter", command=restart_game)
+        winner_label = tk.Label(self.shooting_frame, text=self.players[0].name + " gewinnt!")
+
+        miss_label = tk.Label(self.shooting_frame, text="Daneben!")
+
+        self.players[self.get_active_player()].clear()
+        self.players[self.get_active_player(1)].clear()
+        # TODO fix
+        if quit:
+            print("quit")
+        if defeat:
+            print("defeat")
+            del self.players[self.get_active_player(1 * int(not quit))]
+        else:
+            if not first_time:
+                miss_label.grid()
+        if not quit and not first_time:
+            self.active_player += 1
+        next_player_label = tk.Label(self.shooting_frame,
+                                     text="Nächster Spieler: " + self.players[self.get_active_player()].name)
+        if len(self.players) == 1:  # Game ends.
+            print("winner")
+            winner_label.grid()
+            winner_confirm.grid()
+        else:
+            print("no winner")
+            next_player_label.grid()
+            next_player_button.grid()
+
+    def quit(self):
+        """Whatever"""
+        # TODO implement
+
+
 
 def main():
     """Starts the game."""
