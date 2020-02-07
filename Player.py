@@ -3,8 +3,9 @@
 # header
 
 import tkinter as tk
-import tkinter.messagebox as msg
+import tkinter.messagebox
 import random as rnd
+import time
 from Ship import Ship
 
 
@@ -18,38 +19,70 @@ class Player:
         """Checks whether a player is defeated."""
         return all(ship.sunk() for ship in self.ships)
 
-    def lose(self, quit=False):
-        """Manages the defeat of the player."""
-        self.clear()
-        self.game_manager.next_shooting(defeat=True, quit=quit)
-
-    def shoot(self, y, x):
+    def shoot(self, y, x, spray=False):
         """Shoots at a given position on the board."""
+        if spray:
+            # 50% Chance of spraying.
+            if rnd.random() >= 0.5:
+                possible_fields = []
+                for i in range(-1, 2):
+                    for j in range(-1, 2):
+                        if 0 <= y + i < len(self.board):
+                            if 0 <= x + j < len(self.board[0]):
+                                # possible_fields will contain every valid
+                                # position around the given position.
+                                possible_fields.append((y + i, x + j))
+                if len(possible_fields) == 0:
+                    raise Exception("Field error.")
+                else:
+                    target_position = rnd.choice(possible_fields)
+                    self.shoot(target_position[0], target_position[1])
+                return
+
+        self.opponent.shots -= 1
+        self.opponent.shots_label["text"] = self.opponent.shots
         field = self.board[y][x]
         if field[1] == "water_hit":
             if tk.messagebox.askokcancel(title="Achtung!",
                                          message="Diese Position wurde bereits beschossen.\
                                           Wollen sie erneut auf diese Stelle schießen?"):
-                self.clear()
-                self.game_manager.next_shooting()
+                if self.game_manager.options["shot_per_ship"]:
+                    if self.opponent.shots == 0:
+                        self.clear()
+                        self.game_manager.no_shots_left()
+                else:
+                    self.clear()
+                    self.game_manager.miss()
         elif field[1] == "ship_hit":
             # Nothing happens, even if the player shoots the ship again.
-            tk.messagebox.askokcancel(title="Achtung!",
+            if tk.messagebox.askokcancel(title="Achtung!",
                                       message="Diese Position wurde bereits beschossen.\
-                                          Wollen sie erneut auf diese Stelle schießen?")
+                                          Wollen sie erneut auf diese Stelle schießen?"):
+                if self.game_manager.options["shot_per_ship"]:
+                    if self.opponent.shots == 0:
+                        self.clear()
+                        self.game_manager.no_shots_left()
         elif field[1] == "water":
             field[0]["text"] = Player.symbols["water_hit"]
             field[1] = "water_hit"
-            self.clear()
-            self.game_manager.next_shooting()
+            if self.game_manager.options["shot_per_ship"]:
+                if self.opponent.shots == 0:
+                    self.clear()
+                    self.game_manager.no_shots_left()
+            else:
+                self.clear()
+                self.game_manager.miss()
         elif field[1] == "ship":
             field[0]["text"] = Player.symbols["ship_hit"]
             field[1] = "ship_hit"
             field[2].hit_field(y, x)
             if self.defeated():
                 # Remove the player from the list of players.
-                self.lose()
-            # Else do nothing, the attacker continues.
+                self.game_manager.defeat()
+            elif self.game_manager.options["shot_per_ship"]:
+                if self.opponent.shots == 0:
+                    self.clear()
+                    self.game_manager.no_shots_left()
 
     def place(self, y, x,):
         """"""
@@ -60,16 +93,16 @@ class Player:
                 self.board[y][x][1] = "water"
                 field[2] = None
             else:
-                print("Kann nur Anfang und Ende entfernen.")
+                tk.messagebox.showerror(message="Kann Schiffblöcke nur am Anfang und Ende entfernen")
             return
         if field[2] is not None:
-            print("Anderes Schiff ist im Weg.")
+            tk.messagebox.showerror(message="Anderes Schiff ist im Weg")
             return
         if not self.active_ship.is_next_to(y, x):
-            print("Schiffblöcke nur nebeneinander.")
+            tk.messagebox.showerror(message="Schiffblöcke nur nebeneinander")
             return
         if len(self.active_ship.fields) >= 6:
-            print("Schiff zu lang.")
+            tk.messagebox.showerror(message="Schiff ist zu lang")
             return
         self.board[y][x][0]["text"] = Player.symbols["ship"]
         self.board[y][x][1] = "ship"
@@ -79,7 +112,7 @@ class Player:
     def add_ship(self):
         """Confirms the placement of the active ship."""
         if len(self.active_ship.fields) <= 2:
-            print("Schiff zu kurz")
+            tk.messagebox.showerror(message="Schiff ist zu kurz")
         else:
             self.ships.append(self.active_ship)
             self.active_ship = Ship()
@@ -90,11 +123,15 @@ class Player:
         self.shooting_frame = tk.Frame(root)
         self.viewing_frame = tk.Frame(root)
         self.board_frame = tk.Frame(root)
+        # Only needed for stopping the timer.
+        self.visible = False
+        self.shots = 1
         self.active_ship = Ship()
         self.ships = []
         self.name = name
         self.game_manager = game_manager
         self.board = list()
+        self.opponent = None
         # board is a list of lists of tuples.
         # Each tuple has a Button, a state and a reference to a ship.
         for column in range(size[1]):
@@ -110,10 +147,11 @@ class Player:
                 button.grid(row=row + 1, column=column + 1)
                 field = list((button, "water", None))
                 self.board[row].append(field)
-        quit_button = tk.Button(self.viewing_frame, text="Aufgeben", command=lambda: self.lose(quit=True))
-        quit_button.grid(columnspan=self.board_frame.size()[1], sticky="WE")
-        tk.Label(self.viewing_frame, text="Eigenes Spielfeld (" + self.name + ")").grid(columnspan=self.board_frame.size()[1], sticky="WE")
+        quit_button = tk.Button(self.viewing_frame, text="Aufgeben", command=self.game_manager.quit)
+        quit_button.grid(row=2, columnspan=self.board_frame.size()[1], sticky="WE")
+        tk.Label(self.viewing_frame, text="Eigenes Spielfeld (" + self.name + ")").grid(row=3, columnspan=self.board_frame.size()[1], sticky="WE")
         tk.Label(self.shooting_frame, text=self.name + "'s Spielfeld").grid(columnspan=self.board_frame.size()[1], sticky="WE")
+        self.shots_label = tk.Label(self.viewing_frame)
 
     def get_percentage(self):
         """Calculates how much percent of the board is covered."""
@@ -126,10 +164,9 @@ class Player:
 
     def place_random(self):
         """Fills the board randomly."""
-        # if len(self.ships) < 1:
-        #     print("Mindestens ein Schiff muss zuvor platziert worden sein.")
-        # else:
-        if True:
+        if len(self.ships) < 1:
+            tk.messagebox.showerror(message="Mindestens ein Schiff muss zuvor platziert worden sein")
+        else:
             while self.get_percentage() < 0.2:
                 length = rnd.randint(3, 6)
                 horizontal = bool(rnd.randint(0, 1))
@@ -190,7 +227,7 @@ class Player:
                 self.placement_frame.grid_forget()
                 self.game_manager.next_placement()
             else:
-                print("Anzahl der Schiffe nicht zulässig.")
+                tk.messagebox.showerror(message="Anzahl der Schiffe nicht zulässig")
 
         tk.Label(self.placement_frame, text=self.name + ", bitte platziere deine Schiffe").grid(row=0, column=0, columnspan=self.board_frame.size()[1], sticky="WE")
         # Button for deleting all ships.
@@ -208,18 +245,44 @@ class Player:
         self.placement_frame.grid()
         self.print_board(False)
 
-    def show_shooting(self):
+    def show_shooting(self, opponent):
         """Displays the board in shooting mode."""
+
+        self.opponent = opponent
         for row in range(len(self.board)):
             for column in range(len(self.board[row])):
-                self.board[row][column][0].configure(#text=Player.symbols["water"],
-                                                     command=lambda i=row, j=column:
-                                                     self.shoot(i, j))
+                self.board[row][column][0].configure(command=lambda i=row, j=column:
+                                                     self.shoot(i, j, spray=self.game_manager.options["spray"]))
         self.shooting_frame.grid()
         self.print_board(True)
 
     def show_viewing(self):
         """Displays the board without any functionality."""
+
+        def show_timer():
+            """Displays the time left on the timer."""
+            if not self.visible:
+                return
+            if end - time.time() <= 0:
+                self.game_manager.timeout()
+                return
+            time_label["text"] = "Verbleibende Zeit: " + str(int(end - time.time()))
+            self.viewing_frame.after(750, show_timer)
+
+        if self.game_manager.options["shot_per_ship"]:
+            self.shots = 0
+            for ship in self.ships:
+                if not ship.sunk():
+                    self.shots += 1
+
+        end = time.time() + float(self.game_manager.options["time"])
+        time_label = tk.Label(self.viewing_frame)
+        time_label.grid(row=1)
+        if self.game_manager.options["shot_per_ship"]:
+            self.shots_label.grid(row=0)
+        self.visible = True
+        show_timer()
+        self.shots_label["text"] = self.shots
         for row in self.board:
             for field in row:
                 field[0].configure(command=lambda: ())

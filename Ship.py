@@ -26,8 +26,7 @@ class Ship:
         """Removes a field from the ship."""
         # Try to remove a field that is'n even in the ship.
         if (y, x) not in self.fields.keys():
-            print("FATAL ERROR")
-            return False
+            raise Exception("Field error")
         # Check every field around the given position.
         adjacent_counter = 0
         for i in range(-1, 2):
