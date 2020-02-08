@@ -168,6 +168,8 @@ bla"""
             next_player_button.grid_forget()
             next_player_label.grid_forget()
             miss_label.grid_forget()
+            timeout_label.grid_forget()
+            no_shots_left_label.grid_forget()
             self.players[self.get_active_player(1)].show_shooting(self.players[self.get_active_player()])
             self.players[self.get_active_player()].show_viewing()
 
