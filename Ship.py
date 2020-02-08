@@ -1,6 +1,8 @@
 """Provides the Ship class."""
 
-# header
+__author__ = "6601128, Schademan, 7232927, Tobias"
+__credits__ = ""
+__email__ = "schejda@googlemail.com, s0798915@rz.uni-frankfurt.de"
 
 
 class Ship:
